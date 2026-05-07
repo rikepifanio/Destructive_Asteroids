@@ -1,6 +1,6 @@
 import pygame
 import random
-from config import LARGURA, ALTURA, FPS, VELOCIDADE_JOGADOR, PONTOS_POR_VITORIA
+from config import LARGURA, ALTURA, FPS, VELOCIDADE_JOGADOR, PONTOS_POR_VITORIA, DOURADO
 from assets import fundo_jogo, nave_img, nave_mask, asteroide_img, asteroide_mask
 from assets import som_nave, som_explosao, som_vitoria
 from effects import desenhar_estrelas_moveis, atualizar_estrelas_moveis, animar_explosao_com_posicao
@@ -59,15 +59,55 @@ def jogo(tela, clock, fonte_padrao):
                 pygame.quit()
                 return "quit"
 
-        # Tela de pausa
         if pausado:
+            # Overlay escuro cobrindo toda a tela
             overlay = pygame.Surface((LARGURA, ALTURA))
             overlay.set_alpha(180)
             overlay.fill((0, 0, 0))
             tela.blit(overlay, (0, 0))
 
-            desenhar_texto(tela, fonte_padrao, "PAUSADO", 320, 250, (255, 255, 255), 36, True)
-            desenhar_texto(tela, fonte_padrao, "ESC para continuar", 250, 300, (255, 255, 255), 24)
+            # Painel semi-transparente da pausa
+            painel_pause = pygame.Surface((400, 250))
+            painel_pause.set_alpha(200)
+            painel_pause.fill((20, 20, 40))  # Azul escuro
+            painel_x = (LARGURA - 400) // 2
+            painel_y = (ALTURA - 250) // 2
+
+            tela.blit(painel_pause, (painel_x, painel_y))
+
+            # Borda dourada do painel
+            pygame.draw.rect(tela, DOURADO, (painel_x, painel_y, 400, 250), width=3, border_radius=15)
+
+            # Texto "PAUSADO" estilizado
+            fonte_pause = pygame.font.SysFont("Arial", 55, bold=True)
+
+            # Efeito de sombra no texto
+            texto_sombra = fonte_pause.render("PAUSADO", True, (0, 0, 0))
+            texto_principal = fonte_pause.render("PAUSADO", True, DOURADO)
+
+            texto_x = (LARGURA - texto_principal.get_width()) // 2
+            tela.blit(texto_sombra, (texto_x + 3, painel_y + 53))
+            tela.blit(texto_principal, (texto_x, painel_y + 50))
+
+            # Instrução para continuar
+            fonte_inst = pygame.font.SysFont("Arial", 24)
+            continuar_texto = fonte_inst.render("Pressione ESC para continuar", True, (200, 200, 200))
+            continuar_x = (LARGURA - continuar_texto.get_width()) // 2
+            tela.blit(continuar_texto, (continuar_x, painel_y + 130))
+
+            # Instrução para voltar ao menu
+            fonte_menu = pygame.font.SysFont("Arial", 18)
+            menu_texto = fonte_menu.render("ou pressione M para voltar ao menu", True, (150, 150, 150))
+            menu_x = (LARGURA - menu_texto.get_width()) // 2
+            tela.blit(menu_texto, (menu_x, painel_y + 175))
+
+            # Verifica se pressionou M para voltar ao menu
+            for evento in pygame.event.get():
+                if evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_m:
+                        som_nave.stop()
+                        pygame.event.clear()
+                        return "menu"
 
             pygame.display.update()
             continue

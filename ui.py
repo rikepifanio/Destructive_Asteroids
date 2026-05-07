@@ -6,11 +6,6 @@ from assets import menu_bg, som_vitoria
 from game_data import game_data
 from effects import desenhar_estrelas_piscantes
 
-
-# ============================================
-# FUNÇÕES AUXILIARES DE UI
-# ============================================
-
 def fechar_jogo():
     """Fecha o jogo completamente"""
     pygame.quit()
@@ -60,21 +55,87 @@ def obter_rank(score):
     else:
         return "S", COR_RANK_S
 
-
-# ============================================
-# TELAS DO JOGO
-# ============================================
-
 def menu(tela, clock, fonte_padrao):
-    """Tela principal do jogo"""
+    """Tela principal do jogo com botões estilizados (painel semi-transparente)"""
+
+    # Cria uma superfície semi-transparente para o painel dos botões
+    painel_botoes = pygame.Surface((260, 130))
+    painel_botoes.set_alpha(180)  # Semi-transparente
+    painel_botoes.fill((0, 0, 0))  # Preto
+
     while True:
+        # Desenha o fundo do menu (imagem da galáxia com asteroide)
         tela.blit(menu_bg, (0, 0))
 
-        if botao(tela, fonte_padrao, "JOGAR", 300, 450, 200, 50, VERDE, (0, 200, 0)):
-            return "jogo"
+        # Centraliza o painel na tela
+        painel_x = (LARGURA - 260) // 2
+        painel_y = ALTURA - 180  # 420 (ALTURA=600, 600-180=420)
 
-        if botao(tela, fonte_padrao, "SAIR", 300, 520, 200, 50, VERMELHO, (200, 0, 0)):
-            fechar_jogo()
+        # Desenha o painel atrás dos botões
+        tela.blit(painel_botoes, (painel_x, painel_y))
+
+        # Borda dourada do painel
+        pygame.draw.rect(tela, DOURADO, (painel_x, painel_y, 260, 130), width=2, border_radius=15)
+
+        mouse = pygame.mouse.get_pos()
+        botao_jogar = pygame.Rect(painel_x + 30, painel_y + 20, 200, 40)
+
+        if botao_jogar.collidepoint(mouse):
+            # Efeito de brilho externo no hover
+            pygame.draw.rect(tela, (0, 100, 0), botao_jogar.inflate(6, 6), border_radius=8)
+            pygame.draw.rect(tela, VERDE, botao_jogar, border_radius=8)
+
+            # Texto com brilho
+            texto_botao = fonte_padrao.render("JOGAR", True, BRANCO)
+
+            if pygame.mouse.get_pressed()[0]:
+                pygame.time.delay(150)
+                pygame.event.clear()
+                return "jogo"
+        else:
+            pygame.draw.rect(tela, (0, 80, 0), botao_jogar, border_radius=8)
+            texto_botao = fonte_padrao.render("JOGAR", True, (200, 200, 200))
+
+        # Borda dourada do botão
+        pygame.draw.rect(tela, DOURADO, botao_jogar, width=2, border_radius=8)
+
+        # Centraliza texto do botão
+        texto_x = botao_jogar.x + (botao_jogar.width - texto_botao.get_width()) // 2
+        texto_y = botao_jogar.y + (botao_jogar.height - texto_botao.get_height()) // 2
+        tela.blit(texto_botao, (texto_x, texto_y))
+
+        botao_sair = pygame.Rect(painel_x + 30, painel_y + 70, 200, 40)
+
+        if botao_sair.collidepoint(mouse):
+            # Efeito de brilho externo no hover
+            pygame.draw.rect(tela, (100, 0, 0), botao_sair.inflate(6, 6), border_radius=8)
+            pygame.draw.rect(tela, VERMELHO, botao_sair, border_radius=8)
+            texto_sair = fonte_padrao.render("SAIR", True, BRANCO)
+
+            if pygame.mouse.get_pressed()[0]:
+                pygame.time.delay(150)
+                pygame.event.clear()
+                fechar_jogo()
+        else:
+            pygame.draw.rect(tela, (80, 0, 0), botao_sair, border_radius=8)
+            texto_sair = fonte_padrao.render("SAIR", True, (200, 200, 200))
+
+        # Borda dourada do botão
+        pygame.draw.rect(tela, DOURADO, botao_sair, width=2, border_radius=8)
+
+        # Centraliza texto do botão
+        texto_x = botao_sair.x + (botao_sair.width - texto_sair.get_width()) // 2
+        texto_y = botao_sair.y + (botao_sair.height - texto_sair.get_height()) // 2
+        tela.blit(texto_sair, (texto_x, texto_y))
+
+        fonte_inst = pygame.font.SysFont("Arial", 14)
+        instrucoes = fonte_inst.render("← →  mover nave  |  ESC  pausar", True, (200, 200, 200))
+        inst_x = (LARGURA - instrucoes.get_width()) // 2
+        inst_bg = pygame.Surface((instrucoes.get_width() + 20, 20))
+        inst_bg.set_alpha(150)
+        inst_bg.fill((0, 0, 0))
+        tela.blit(inst_bg, (inst_x - 10, ALTURA - 30))
+        tela.blit(instrucoes, (inst_x, ALTURA - 30))
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -83,9 +144,7 @@ def menu(tela, clock, fonte_padrao):
         pygame.display.update()
         clock.tick(FPS_MENU)
 
-
 def tela_fim(tela, clock, fonte_padrao, msg):
-    """Tela de fim de jogo (vitória ou derrota)"""
     score = game_data["score"]
     tempo = game_data["tempo"]
 
@@ -146,7 +205,6 @@ def tela_fim(tela, clock, fonte_padrao, msg):
         clock.tick(FPS_MENU)
 
 def desenhar_vidas(tela, vidas):
-    """Desenha os corações/ícones de vida na tela"""
     coracao_texto = "❤️ " * vidas
     fonte_vidas = pygame.font.SysFont("segoeuiemoji", 30)  # Fonte que suporta emoji
 

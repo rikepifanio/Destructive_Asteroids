@@ -25,7 +25,7 @@ def atualizar_tempo(valor):
     game_data["tempo"] = valor
 
 def perder_vida():
-    """Remove uma vida e retorna se ainda está vivo"""
+    """Remove uma vida e retorna se continua vivo"""
     game_data["vidas"] -= 1
     return game_data["vidas"] > 0
 
