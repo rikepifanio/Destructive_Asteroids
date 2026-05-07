@@ -7,6 +7,16 @@ pygame.init()
 menu_bg = pygame.image.load("imagens/menu_1.png")
 menu_bg = pygame.transform.scale(menu_bg, (800, 600))
 
+nave_img = pygame.image.load("imagens/nave.png")
+nave_img = pygame.transform.scale(nave_img, (64, 64))
+nave_mask = pygame.mask.from_surface(nave_img)
+
+asteroide_img = pygame.image.load("imagens/asteroide.png")
+asteroide_img = pygame.transform.scale(asteroide_img, (50, 50))
+asteroide_mask = pygame.mask.from_surface(asteroide_img)
+
+estado = "menu"
+
 def botao(texto, x, y, largura, altura, cor, cor_hover):
     mouse = pygame.mouse.get_pos()
     clique = pygame.mouse.get_pressed()
@@ -30,7 +40,7 @@ def botao(texto, x, y, largura, altura, cor, cor_hover):
 LARGURA = 800
 ALTURA = 600
 tela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Desvie dos Inimigos")
+pygame.display.set_caption("Destructive Ateroids")
 
 # Cores
 BRANCO = (255, 255, 255)
@@ -38,19 +48,15 @@ PRETO = (0, 0, 0)
 VERMELHO = (255, 0, 0)
 AZUL = (0, 0, 255)
 
-# Jogador
-jogador = pygame.Rect(350, 500, 50, 50)
-vel_jogador = 5
-
-# Inimigos
-inimigos = []
-vel_inimigo = 10
-
 # Tempo
 clock = pygame.time.Clock()
 tempo_vitoria = 20
 
 fonte = pygame.font.SysFont(None, 36)
+
+def fechar_jogo() -> NoReturn:
+    pygame.quit()
+    sys.exit()
 
 def texto(msg, x, y):
     img = fonte.render(msg, True, BRANCO)
@@ -64,13 +70,11 @@ def menu():
             return "jogo"
 
         if botao("SAIR", 300, 520, 200, 50, (128, 0, 0), (200, 0, 0)):
-            pygame.quit()
-            sys.exit()
+            fechar_jogo()
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                fechar_jogo()
 
         pygame.display.update()
 
@@ -86,14 +90,15 @@ def tela_fim(msg):
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                fechar_jogo()
 
         pygame.display.update()
 
 def jogo():
     jogador = pygame.Rect(350, 500, 50, 50)
+    vel_jogador = 5
     inimigos = []
+    vel_inimigo = 10
     start = pygame.time.get_ticks()
 
     while True:
@@ -104,8 +109,7 @@ def jogo():
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                fechar_jogo()
 
         teclas = pygame.key.get_pressed()
         if teclas[pygame.K_LEFT]:
@@ -120,27 +124,27 @@ def jogo():
             jogador.x = LARGURA - jogador.width
 
         if random.randint(1, 30) == 1:
-            inimigos.append(pygame.Rect(random.randint(0, 750), 0, 50, 50))
+            inimigos.append(pygame.Rect(random.randint(0, LARGURA - 50), 0, 50, 50))
 
         for inimigo in inimigos:
             inimigo.y += vel_inimigo
+            # Hitbox
+            offset = (inimigo.x - jogador.x, inimigo.y - jogador.y)
 
-            if inimigo.colliderect(jogador):
+            if nave_mask.overlap(asteroide_mask, offset):
                 return "fim"
 
         if tempo >= tempo_vitoria:
             return "vitoria"
 
-        pygame.draw.rect(tela, AZUL, jogador)
+        tela.blit(nave_img, (jogador.x, jogador.y))
 
         for inimigo in inimigos:
-            pygame.draw.rect(tela, VERMELHO, inimigo)
-
+            tela.blit(asteroide_img, (inimigo.x, inimigo.y))
+        # Temporizador do Game
         texto(f"Tempo: {int(tempo)}", 10, 10)
 
         pygame.display.update()
-
-estado = "menu"
 
 while True:
     if estado == "menu":
