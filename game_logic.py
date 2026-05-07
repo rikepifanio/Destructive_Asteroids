@@ -4,8 +4,8 @@ from config import LARGURA, ALTURA, FPS, VELOCIDADE_JOGADOR, PONTOS_POR_VITORIA
 from assets import fundo_jogo, nave_img, nave_mask, asteroide_img, asteroide_mask
 from assets import som_nave, som_explosao, som_vitoria
 from effects import desenhar_estrelas_moveis, atualizar_estrelas_moveis, animar_explosao_com_posicao
-from game_data import game_data, atualizar_score, atualizar_tempo
-from ui import desenhar_texto
+from game_data import game_data, atualizar_score, atualizar_tempo, perder_vida, resetar_vidas
+from ui import desenhar_texto, desenhar_vidas
 
 
 def jogo(tela, clock, fonte_padrao):
@@ -13,6 +13,11 @@ def jogo(tela, clock, fonte_padrao):
     inimigos = []
     tempo_inicial = pygame.time.get_ticks()
     pausado = False
+
+    # Tempo de invencibilidade após perder vida (frames)
+    invencivel = False
+    tempo_invencivel = 0
+    duracao_invencivel = 60  # 1 segundo (60 frames)
 
     som_nave.play(-1)
 
@@ -91,23 +96,51 @@ def jogo(tela, clock, fonte_padrao):
                 inimigos.remove(inimigo)
                 continue
 
-            # Verifica colisão
-            offset = (inimigo.x - jogador.x, inimigo.y - jogador.y)
+            # Verifica colisão (apenas se não estiver invencível)
+            if not invencivel:
+                offset = (inimigo.x - jogador.x, inimigo.y - jogador.y)
 
-            if nave_mask.overlap(asteroide_mask, offset):
-                som_nave.stop()
-                som_explosao.play()
-                animar_explosao_com_posicao(tela, jogador.x, jogador.y)
-                pygame.event.clear()
-                return "fim"
+                if nave_mask.overlap(asteroide_mask, offset):
+                    # Perdeu uma vida
+                    if perder_vida():
+                        # Ainda tem vidas - fica invencível temporariamente
+                        som_explosao.play()
+                        animar_explosao_com_posicao(tela, jogador.x, jogador.y)
+                        invencivel = True
+                        tempo_invencivel = duracao_invencivel
 
-        # Desenha elementos na tela
-        tela.blit(nave_img, (jogador.x, jogador.y))
+                        # Remove o asteroide que colidiu
+                        inimigos.remove(inimigo)
 
+                        # Pisca a nave para indicar invencibilidade
+                        continue
+                    else:
+                        # Sem vidas - GAME OVER
+                        som_nave.stop()
+                        som_explosao.play()
+                        animar_explosao_com_posicao(tela, jogador.x, jogador.y)
+                        pygame.event.clear()
+                        return "fim"
+
+        # Gerencia o tempo de invencibilidade
+        if invencivel:
+            tempo_invencivel -= 1
+            if tempo_invencivel <= 0:
+                invencivel = False
+
+            # Efeito de piscar quando invencível
+            if (tempo_invencivel // 5) % 2 == 0:  # Pisca a cada 5 frames
+                tela.blit(nave_img, (jogador.x, jogador.y))
+        else:
+            # Desenha nave normalmente
+            tela.blit(nave_img, (jogador.x, jogador.y))
+
+        # Desenha asteroides
         for inimigo in inimigos:
             tela.blit(asteroide_img, (inimigo.x, inimigo.y))
 
-        # Mostra pontuação
+        # Mostra pontuação e vidas
         desenhar_texto(tela, fonte_padrao, f"Score: {game_data['score']}", 10, 40)
+        desenhar_vidas(tela, game_data["vidas"])
 
         pygame.display.update()

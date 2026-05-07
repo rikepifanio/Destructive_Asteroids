@@ -1,7 +1,3 @@
-"""
-Interface do usuário: menus, botões, telas
-"""
-
 import pygame
 import sys
 from config import LARGURA, ALTURA, BRANCO, AZUL, VERDE, VERMELHO, DOURADO, FPS_MENU
@@ -148,3 +144,18 @@ def tela_fim(tela, clock, fonte_padrao, msg):
 
         pygame.display.update()
         clock.tick(FPS_MENU)
+
+def desenhar_vidas(tela, vidas):
+    """Desenha os corações/ícones de vida na tela"""
+    coracao_texto = "❤️ " * vidas
+    fonte_vidas = pygame.font.SysFont("segoeuiemoji", 30)  # Fonte que suporta emoji
+
+    try:
+        # Tenta usar emoji
+        img_vidas = fonte_vidas.render(coracao_texto, True, VERMELHO)
+    except:
+        # Fallback: usa texto simples se emoji não funcionar
+        fonte_vidas = pygame.font.SysFont(None, 30)
+        img_vidas = fonte_vidas.render(f"Vidas: {vidas}", True, VERMELHO)
+
+    tela.blit(img_vidas, (10, 80))
