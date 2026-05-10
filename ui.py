@@ -46,11 +46,11 @@ def botao(tela, fonte_padrao, texto, x, y, largura, altura, cor_normal, cor_hove
 
 def obter_rank(score):
     """Retorna o rank baseado na pontuação"""
-    if score < 500:
+    if score < 150:
         return "C", COR_RANK_C
-    elif score < 1000:
+    elif score < 300:
         return "B", COR_RANK_B
-    elif score < 1500:
+    elif score < 450:
         return "A", COR_RANK_A
     else:
         return "S", COR_RANK_S
